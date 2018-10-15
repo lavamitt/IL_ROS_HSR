@@ -89,3 +89,49 @@ Leaving HSR-B Interactive Shell
 ```
 
 And it worked for me.
+
+If you are experiencing trouble connecting to the robot and executing commands is not working, make sure you have set up your bashrc correctly. You can do this by calling:
+
+```
+$ gedit ~/.bashrc
+```
+
+Make sure that you have set up the network interface correctly. Your bashrc should contain the following:
+
+```
+# please set network-interface
+network_if=enp0s31f6 # found by typing `ifconfig`
+
+if [ -e /opt/ros/kinetic/setup.bash ] ; then
+    source /opt/ros/kinetic/setup.bash
+else
+    echo "ROS packages are not installed."
+fi
+
+export TARGET_IP=$(LANG=C /sbin/ifconfig $network_if | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+if [ -z "$TARGET_IP" ] ; then
+    echo "ROS_IP is not set."
+else
+    export ROS_IP=$TARGET_IP
+fi
+
+export ROS_HOME=~/.ros
+alias sim_mode='export ROS_MASTER_URI=http://localhost:11311 export PS1="\[\033[44;1;37m\]<local>\[\033[0m\]\w$ "'
+alias hsrb_mode='export ROS_MASTER_URI=http://hsrb.local:11311 export PS1="\[\033[41;1;37m\]<hsrb>\[\033[0m\]\w$ "'
+```
+
+In addition, for general debugging, make sure you have called
+```
+$ source /opt/ros/kinetic/setup.bash
+```
+
+Lastly, to verify that you are connected to the robot, you can call
+```
+$ rostopic list
+```
+which will list out a significantly long list of ros topics related to the HSR. If the list is short (~10 lines), it may be because the red stop button is still pressed.
+
+```
+$ rqt_image_view
+```
+Is also useful to see from the robot's camera perspective.
